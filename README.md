@@ -62,7 +62,7 @@
 
 ## Запуск проекта
 
-### Вариант 1: Docker
+### Docker
 1. Перейти в директорию проекта.
 2. Запустить:
 
@@ -73,25 +73,6 @@ docker-compose up --build
 После запуска доступны:
 - Swagger UI: http://localhost:8000/api/docs
 - ReDoc: http://localhost:8000/api/redoc
-
-### Вариант 2: Локально
-1. Установить зависимости:
-
-```bash
-pip install -r requirements.txt
-```
-
-2. Создать и заполнить БД (при необходимости):
-
-```bash
-python scripts/seed_data.py
-```
-
-3. Запустить приложение:
-
-```bash
-python run.py
-```
 
 ## Аутентификация
 Для защищенных методов используется статический API-ключ.
