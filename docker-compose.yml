@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # База данных PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: organization_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: organization_directory
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d organization_directory"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Приложение FastAPI
+  app:
+    build: .
+    container_name: organization_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5432/organization_directory
+      API_KEY: my_secret_api_key_12345
+      API_KEY_NAME: X-API-Key
+      HOST: 0.0.0.0
+      PORT: 8000
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+      - ./alembic:/app/alembic
+      - ./scripts:/app/scripts
+    command: >
+      sh -c "
+        echo 'Ожидание готовности базы данных...' &&
+        sleep 5 &&
+        echo 'Применение миграций...' &&
+        alembic upgrade head &&
+        echo 'Заполнение базы тестовыми данными...' &&
+        python scripts/seed_data.py || echo 'Данные уже существуют' &&
+        echo 'Запуск приложения...' &&
+        python run.py
+      "
+
+volumes:
+  postgres_data:
